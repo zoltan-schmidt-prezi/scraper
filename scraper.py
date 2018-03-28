@@ -26,10 +26,7 @@ def parse_table_bs(html):
             cells = row.findAll("td")
             if len(cells) != 3:
                 raise Exception('Column number mismatch')
-            values_table_row = []
-            for elem in cells:
-                values_table_row.append(elem.text.strip())
-                print elem.text.strip().encode('utf-8')
+            values_table_row = [elem.text.strip() for elem in cells]
             values_table.append(values_table_row)
     return values_table
 
@@ -37,6 +34,7 @@ def main():
     db_connector("mysql")
     raw_data = scraper(rates_url)
     vt = parse_table_bs(raw_data)
+    print vt
 
 if __name__ == "__main__":
     main()
