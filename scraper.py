@@ -29,6 +29,8 @@ def db_connector():
                              passwd = db_passwd,
                              db = db_name)
 
+        db.set_character_set('utf8')
+
         print "Successfully connected to ", db_name
     except Exception as e:
         print e
@@ -39,15 +41,18 @@ def db_connector():
 def db_writer(db, data):
 
     cursor = db.cursor()
+    cursor.execute('SET NAMES utf8;')
+    cursor.execute('SET CHARACTER SET utf8;')
+    cursor.execute('SET character_set_connection=utf8;')
 
     sql_add_exchange_rate_query = """INSERT INTO main_exchange(date,
                                        updated, name, rate, sum)
                                        VALUES(%s, %s, %s, %s, %s)"""
 
     for item in data:
-        sql_add_exchange_rate_data = (item[3],
-                                      item[4], item[0],
-                                      item[1], item[2])
+        sql_add_exchange_rate_data = (item[3], item[4],
+            item[0].encode('UTF-8'),
+            item[1], item[2])
 
         try:
             cursor.execute(sql_add_exchange_rate_query,
@@ -65,7 +70,12 @@ def parse_table_bs(html):
     values_table = []
     soup = BeautifulSoup(html, 'html.parser')
     for table in soup.findAll("table", { "class" : "generali-table" }):
+        header = True
         for row in table.findAll("tr"):
+        # Drop table header
+            if header:
+                header = False
+                continue
             cells = row.findAll("td")
             if len(cells) != 3:
                 raise Exception('Column number mismatch')
@@ -74,8 +84,8 @@ def parse_table_bs(html):
             values_table_row.append(date.today().isoformat())
             values_table_row.append('1999-01-01')
             values_table.append(values_table_row)
-        # Drop table header
-        values_table = values_table[1:]
+
+            print values_table_row
     return values_table
 
 def main():
