@@ -1,4 +1,5 @@
 from bs4 import BeautifulSoup
+from datetime import date
 import MySQLdb
 import re
 import requests
@@ -35,23 +36,27 @@ def db_connector():
 
     return db
 
-def db_writer(db):
+def db_writer(db, data):
 
-    sql = """INSERT INTO main_exchange(date, updated, name, rate, sum)
-             VALUES('2018-03-28', '2018-03-28','korte', 1.0001, 208998123)""" 
-    try:
-        cursor = db.cursor()
-        cursor.execute(sql)
-        db.commit()
+    cursor = db.cursor()
 
-        cursor.execute("SELECT * FROM main_exchange")
+    sql_add_exchange_rate_query = """INSERT INTO main_exchange(date,
+                                       updated, name, rate, sum)
+                                       VALUES(%s, %s, %s, %s, %s)"""
 
-        for row in cursor.fetchall():
-            print row[0]
+    for item in data:
+        sql_add_exchange_rate_data = (item[3],
+                                      item[4], item[0],
+                                      item[1], item[2])
 
-    except Exception as e:
-        print e
-        raise
+        try:
+            cursor.execute(sql_add_exchange_rate_query,
+                           sql_add_exchange_rate_data)
+            db.commit()
+
+        except Exception as e:
+            db.rollback()
+            print e
 
 def db_close(db):
     db.close()
@@ -64,7 +69,10 @@ def parse_table_bs(html):
             cells = row.findAll("td")
             if len(cells) != 3:
                 raise Exception('Column number mismatch')
+            #TODO turn into kv pairs
             values_table_row = [elem.text.strip() for elem in cells]
+            values_table_row.append(date.today().isoformat())
+            values_table_row.append('1999-01-01')
             values_table.append(values_table_row)
         # Drop table header
         values_table = values_table[1:]
@@ -72,10 +80,10 @@ def parse_table_bs(html):
 
 def main():
     db = db_connector()
-    db_writer(db)
+    raw_data = scraper(rates_url)
+    vt = parse_table_bs(raw_data)
+    db_writer(db, vt)
     db_close(db)
-#    raw_data = scraper(rates_url)
-#    vt = parse_table_bs(raw_data)
 #    if DEBUG:
 #        for item in vt:
 #            print item
