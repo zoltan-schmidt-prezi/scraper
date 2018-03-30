@@ -50,9 +50,11 @@ def db_writer(db, data):
                                        VALUES(%s, %s, %s, %s, %s)"""
 
     for item in data:
-        sql_add_exchange_rate_data = (item[3], item[4],
-            item[0].encode('UTF-8'),
-            item[1], item[2])
+        sql_add_exchange_rate_data = (item['date'],
+                                    item['updated'],
+                                    item['name'].encode('UTF-8'),
+                                    item['rate'],
+                                    item['sum'])
 
         try:
             cursor.execute(sql_add_exchange_rate_query,
@@ -79,10 +81,11 @@ def parse_table_bs(html):
             cells = row.findAll("td")
             if len(cells) != 3:
                 raise Exception('Column number mismatch')
-            #TODO turn into kv pairs
-            values_table_row = [elem.text.strip() for elem in cells]
-            values_table_row.append(date.today().isoformat())
-            values_table_row.append('1999-01-01')
+            values_table_row = {'name': cells[0].text.strip(),
+                                'rate': cells[1].text.strip(),
+                                'sum': cells[2].text.strip(),
+                                'date': date.today().isoformat(),
+                                'updated': '1999-01-01'}
             values_table.append(values_table_row)
 
             print values_table_row
