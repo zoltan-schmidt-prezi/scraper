@@ -44,12 +44,13 @@ def db_writer(db, data):
     cursor.execute('SET CHARACTER SET utf8;')
     cursor.execute('SET character_set_connection=utf8;')
 
-    sql_add_exchange_rate_query = """INSERT INTO main_exchange(date,
+    sql_add_exchange_rate_query = """INSERT INTO main_exchange(id, date,
                                        updated, name, rate, sum, currency)
-                                       VALUES(%s, %s, %s, %s, %s, %s)"""
+                                       VALUES(%s, %s, %s, %s, %s, %s, %s)"""
 
     for item in data:
-        sql_add_exchange_rate_data = (item['date'],
+        sql_add_exchange_rate_data = (item['id'],
+                                    item['date'],
                                     item['updated'],
                                     item['name'],
                                     item['rate'],
@@ -92,12 +93,14 @@ def parse_soup_for_rates(soup):
             cells = row.findAll("td")
             if len(cells) != 3:
                 raise Exception('Column number mismatch')
-            one_entry_dict = {'name': cells[0].text.strip(),
-                              'rate': cells[1].text.strip(),
-                              'sum': cells[2].text.strip(),
-                              'date': date.today().isoformat(),
-                              'updated': '',
-                              'currency': ''}
+            one_entry_dict = {
+                        'id': abs(hash(cells[0].text.strip())) % (10 ** 8),
+                        'name': cells[0].text.strip(),
+                        'rate': cells[1].text.strip(),
+                        'sum': cells[2].text.strip(),
+                        'date': date.today().isoformat(),
+                        'updated': '',
+                        'currency': ''}
             all_table_entries.append(one_entry_dict)
     return all_table_entries
 
