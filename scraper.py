@@ -68,9 +68,20 @@ def db_writer(db, data):
 def db_close(db):
     db.close()
 
-def parse_html_bs(html):
+def make_soup(html):
+    return BeautifulSoup(html, 'html.parser')
+
+def parse_soup_for_date(soup):
+    updated = soup.find("div", attrs={"class": "accordion", "id": "exchangeaccordion"})
+    match = re.search(r"^.*?(\d{4})\.(\d{2})\.(\d{2})\..*$", updated.h3.text.strip())
+    if match:
+        rates_updated = "-".join([match.group(1), match.group(2), match.group(3)])
+    else:
+        rates_updated = "1999-01-01"
+    return rates_updated
+
+def parse_soup_for_rates(soup):
     all_table_entries = []
-    soup = BeautifulSoup(html, 'html.parser')
     for table in soup.findAll("table", { "class" : "generali-table" }):
         header = True
         for row in table.findAll("tr"):
@@ -85,12 +96,12 @@ def parse_html_bs(html):
                               'rate': cells[1].text.strip(),
                               'sum': cells[2].text.strip(),
                               'date': date.today().isoformat(),
-                              'updated': '1999-01-01',
+                              'updated': '',
                               'currency': ''}
             all_table_entries.append(one_entry_dict)
     return all_table_entries
 
-def process_input_data(table):
+def process_input_data(table, rates_date):
     for row in table:
         # Convert names from cp1252 to utf-8
         row['name'] = row['name'].encode('UTF-8')
@@ -101,13 +112,20 @@ def process_input_data(table):
         row['currency'] = temp_curr
         # Remove currency
         row['sum'] = ''.join(row['sum'].split())[:-3]
+        row['updated'] = rates_date
     return table
 
 def main():
     db = db_connector()
+    
     raw_data = scraper(rates_url)
-    input_table = parse_html_bs(raw_data)
-    processed_table = process_input_data(input_table)
+    
+    soup = make_soup(raw_data)
+    
+    rates_date = parse_soup_for_date(soup)
+    input_table = parse_soup_for_rates(soup)
+    processed_table = process_input_data(input_table, rates_date)
+    
     db_writer(db, processed_table)
     db_close(db)
 """    if DEBUG:
