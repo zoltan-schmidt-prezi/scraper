@@ -2,7 +2,8 @@ DB password management
 config management
 front end
 tests
-matching table
+update matching table only
 
 done:
 id generation for matching table
+matching table
