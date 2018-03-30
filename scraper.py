@@ -37,7 +37,7 @@ def db_connector():
 
     return db
 
-def db_writer(db, data):
+def db_main_writer(db, data):
 
     cursor = db.cursor()
     cursor.execute('SET NAMES utf8;')
@@ -65,6 +65,42 @@ def db_writer(db, data):
         except Exception as e:
             db.rollback()
             print e
+
+def db_selector_writer(db, data):
+
+    cursor = db.cursor()
+    cursor.execute('SET NAMES utf8;')
+    cursor.execute('SET CHARACTER SET utf8;')
+    cursor.execute('SET character_set_connection=utf8;')
+    
+    sql_get_selector_query = """SELECT id FROM selector WHERE id = %s"""
+    sql_add_selector_query = """INSERT INTO selector(id, name)
+                                    VALUES(%s, %s)"""
+
+
+    for item in data:
+        sql_get_selector_data = (item['id'],)
+        
+        sql_add_selector_data = (item['id'],
+                                item['name'])
+        
+        try:
+            cursor.execute(sql_get_selector_query,
+                            sql_get_selector_data)
+            
+            res = cursor.fetchone()
+            
+            if not res:
+                cursor.execute(sql_add_selector_query,
+                            sql_add_selector_data)
+                db.commit()
+            else:
+                print res[0]
+
+        except Exception as e:
+            db.rollback()
+            print e
+            raise
 
 def db_close(db):
     db.close()
@@ -128,8 +164,9 @@ def main():
     rates_date = parse_soup_for_date(soup)
     input_table = parse_soup_for_rates(soup)
     processed_table = process_input_data(input_table, rates_date)
-    
-    db_writer(db, processed_table)
+
+    db_selector_writer(db, processed_table)
+    db_main_writer(db, processed_table)
     db_close(db)
 """    if DEBUG:
         for item in processed_table:
