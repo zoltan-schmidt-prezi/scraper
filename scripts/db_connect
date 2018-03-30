@@ -1,0 +1,1 @@
+mysql -h scraperdb.c1mkc0degkxm.eu-central-1.rds.amazonaws.com -P 3306 -u scraper_admin -p
