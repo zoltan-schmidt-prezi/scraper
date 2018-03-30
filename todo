@@ -2,8 +2,10 @@ DB password management
 config management
 front end
 tests
-update matching table only
+refactor db handling
+classes
 
 done:
+update matching table only
 id generation for matching table
 matching table
