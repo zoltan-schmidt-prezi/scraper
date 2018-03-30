@@ -13,7 +13,6 @@ db_passwd = 'scraper%admin'
 db_name = 'scraper'
 
 
-
 def scraper(url):
     print "Getting page contents for:", url
     r = requests.get(url)
@@ -46,15 +45,16 @@ def db_writer(db, data):
     cursor.execute('SET character_set_connection=utf8;')
 
     sql_add_exchange_rate_query = """INSERT INTO main_exchange(date,
-                                       updated, name, rate, sum)
-                                       VALUES(%s, %s, %s, %s, %s)"""
+                                       updated, name, rate, sum, currency)
+                                       VALUES(%s, %s, %s, %s, %s, %s)"""
 
     for item in data:
         sql_add_exchange_rate_data = (item['date'],
                                     item['updated'],
-                                    item['name'].encode('UTF-8'),
+                                    item['name'],
                                     item['rate'],
-                                    item['sum'])
+                                    item['sum'],
+                                    item['currency'])
 
         try:
             cursor.execute(sql_add_exchange_rate_query,
@@ -68,8 +68,8 @@ def db_writer(db, data):
 def db_close(db):
     db.close()
 
-def parse_table_bs(html):
-    values_table = []
+def parse_html_bs(html):
+    all_table_entries = []
     soup = BeautifulSoup(html, 'html.parser')
     for table in soup.findAll("table", { "class" : "generali-table" }):
         header = True
@@ -81,25 +81,38 @@ def parse_table_bs(html):
             cells = row.findAll("td")
             if len(cells) != 3:
                 raise Exception('Column number mismatch')
-            values_table_row = {'name': cells[0].text.strip(),
-                                'rate': cells[1].text.strip(),
-                                'sum': cells[2].text.strip(),
-                                'date': date.today().isoformat(),
-                                'updated': '1999-01-01'}
-            values_table.append(values_table_row)
+            one_entry_dict = {'name': cells[0].text.strip(),
+                              'rate': cells[1].text.strip(),
+                              'sum': cells[2].text.strip(),
+                              'date': date.today().isoformat(),
+                              'updated': '1999-01-01',
+                              'currency': ''}
+            all_table_entries.append(one_entry_dict)
+    return all_table_entries
 
-            print values_table_row
-    return values_table
+def process_input_data(table):
+    for row in table:
+        # Convert names from cp1252 to utf-8
+        row['name'] = row['name'].encode('UTF-8')
+        # Remove currencu and convert rates to proper float
+        temp_rate = float(row['rate'].split()[0].replace(',','.'))
+        temp_curr = row['rate'].split()[1]
+        row['rate'] = temp_rate
+        row['currency'] = temp_curr
+        # Remove currency
+        row['sum'] = ''.join(row['sum'].split())[:-3]
+    return table
 
 def main():
     db = db_connector()
     raw_data = scraper(rates_url)
-    vt = parse_table_bs(raw_data)
-    db_writer(db, vt)
+    input_table = parse_html_bs(raw_data)
+    processed_table = process_input_data(input_table)
+    db_writer(db, processed_table)
     db_close(db)
-#    if DEBUG:
-#        for item in vt:
-#            print item
-
+"""    if DEBUG:
+        for item in processed_table:
+            print item
+"""
 if __name__ == "__main__":
     main()
