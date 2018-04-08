@@ -1,0 +1,1 @@
+00 11 * * * pyhon /home/ec2-user/scraper/prod/scraper.py
