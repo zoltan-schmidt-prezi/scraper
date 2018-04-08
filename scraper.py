@@ -10,7 +10,7 @@ rates_url = 'https://www.generali.hu/Ugyfelszolgalat/Informaciok/Befektetesek/Es
 db_endpoint = 'scraperdb.c1mkc0degkxm.eu-central-1.rds.amazonaws.com'
 db_user = 'scraper_admin'
 db_passwd = 'scraper%admin'
-db_name = 'scraper'
+db_name = 'scraper_preprod'
 
 
 def scraper(url):
