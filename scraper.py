@@ -74,6 +74,8 @@ def db_main_writer(db, data):
             db.rollback()
             logging.error('DB commit rollback in main_exchange: %s', e)
 
+    logging.info('>>> Added %s items to main_exchange <<<', len(data))
+
 def db_selector_writer(db, data):
 
     cursor = db.cursor()
@@ -87,6 +89,7 @@ def db_selector_writer(db, data):
 
 
     for item in data:
+        # Get IDs one by one and if doesn't exitst add new id and name
         sql_get_selector_data = (item['id'],)
         
         sql_add_selector_data = (item['id'],
@@ -102,9 +105,10 @@ def db_selector_writer(db, data):
                 cursor.execute(sql_add_selector_query,
                             sql_add_selector_data)
                 db.commit()
+                logging.warning('New item found on page: %s', res[9])
             else:
                 if DEBUG:
-                    print res[0]
+                    logging.debug(res[0])
 
         except Exception as e:
             db.rollback()
@@ -127,6 +131,7 @@ def parse_soup_for_date(soup):
     return rates_updated
 
 def parse_soup_for_rates(soup):
+    logging.info('Getting rates...')
     all_table_entries = []
     for table in soup.findAll("table", { "class" : "generali-table" }):
         header = True
@@ -150,6 +155,7 @@ def parse_soup_for_rates(soup):
     return all_table_entries
 
 def process_input_data(table, rates_date):
+    logging.info('Processing input data')
     for row in table:
         # Convert names from cp1252 to utf-8
         row['name'] = row['name'].encode('UTF-8')
@@ -179,9 +185,6 @@ def main():
     db_main_writer(db, processed_table)
     db_close(db)
     logging.info('Scraper finished.')
-"""    if DEBUG:
-        for item in processed_table:
-            print item
-"""
+
 if __name__ == "__main__":
     main()

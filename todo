@@ -1,6 +1,6 @@
 TODO:
 
-LOGGING
+logging config
 DB password management
 config management
 front end
@@ -10,6 +10,7 @@ classes
 
 done:
 
+LOGGING
 preprod db!
 update matching table only
 id generation for matching table
