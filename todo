@@ -1,5 +1,6 @@
 TODO:
 
+remove name, currency from main_exchange, add to selector
 logging config
 DB password management
 config management
