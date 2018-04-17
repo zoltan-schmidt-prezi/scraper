@@ -1,0 +1,2 @@
+
+select selector.name, main_exchange.date, main_exchange.updated, main_exchange.rate, main_exchange.sum from main_exchange inner join selector on main_exchange.id=selector.id where main_exchange.id = 42922169;
