@@ -1,6 +1,7 @@
 TODO:
 
-LOGGING
+remove name, currency from main_exchange, add to selector
+logging config
 DB password management
 config management
 front end
@@ -10,6 +11,7 @@ classes
 
 done:
 
+LOGGING
 preprod db!
 update matching table only
 id generation for matching table
