@@ -45,17 +45,15 @@ def db_main_writer(db, data):
     cursor.execute('SET character_set_connection=utf8;')
 
     sql_add_exchange_rate_query = """INSERT INTO main_exchange(id, date,
-                                       updated, name, rate, sum, currency)
-                                       VALUES(%s, %s, %s, %s, %s, %s, %s)"""
+                                       updated, rate, sum)
+                                       VALUES(%s, %s, %s, %s, %s)"""
 
     for item in data:
         sql_add_exchange_rate_data = (item['id'],
                                     item['date'],
                                     item['updated'],
-                                    item['name'],
                                     item['rate'],
-                                    item['sum'],
-                                    item['currency'])
+                                    item['sum'])
 
         try:
             cursor.execute(sql_add_exchange_rate_query,
@@ -74,15 +72,16 @@ def db_selector_writer(db, data):
     cursor.execute('SET character_set_connection=utf8;')
     
     sql_get_selector_query = """SELECT id FROM selector WHERE id = %s"""
-    sql_add_selector_query = """INSERT INTO selector(id, name)
-                                    VALUES(%s, %s)"""
+    sql_add_selector_query = """INSERT INTO selector(id, name, currency)
+                                    VALUES(%s, %s, %s)"""
 
 
     for item in data:
         sql_get_selector_data = (item['id'],)
         
         sql_add_selector_data = (item['id'],
-                                item['name'])
+                                item['name'],
+                                item['currency'])
         
         try:
             cursor.execute(sql_get_selector_query,
