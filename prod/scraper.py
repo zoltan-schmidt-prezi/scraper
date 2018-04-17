@@ -1,26 +1,34 @@
 from bs4 import BeautifulSoup
 from datetime import date
+import logging
 import MySQLdb
 import re
 import requests
 
 DEBUG = False
 
+# CONFIG
 rates_url = 'https://www.generali.hu/Ugyfelszolgalat/Informaciok/Befektetesek/Eszkozalapjaink.aspx'
 db_endpoint = 'scraperdb.c1mkc0degkxm.eu-central-1.rds.amazonaws.com'
 db_user = 'scraper_admin'
 db_passwd = 'scraper%admin'
 db_name = 'scraper_preprod'
 
+log_file = 'scraper.log'
+LOG_FORMAT = '%(asctime)s %(levelname)s %(message)s'
+
+logging.basicConfig(format=LOG_FORMAT, filename=log_file, 
+                    level=logging.DEBUG)
+
 
 def scraper(url):
-    print "Getting page contents for:", url
+    logging.info('Getting page contents for %s', url)
     r = requests.get(url)
     if r.status_code == 200:
         return r.text
 
 def db_connector():
-    print("Connect to DB here...")
+    logging.info("Connect to DB...")
 
     try:
         db = MySQLdb.connect(host = db_endpoint,
@@ -30,9 +38,9 @@ def db_connector():
 
         db.set_character_set('utf8')
 
-        print "Successfully connected to ", db_name
+        logging.info("Successfully connected to %s", db_name)
     except Exception as e:
-        print e
+        logging.error('Connection error: %s', e)
         raise
 
     return db
@@ -62,7 +70,9 @@ def db_main_writer(db, data):
 
         except Exception as e:
             db.rollback()
-            print e
+            logging.error('DB commit rollback in main_exchange: %s', e)
+
+    logging.info('>>> Added %s items to main_exchange <<<', len(data))
 
 def db_selector_writer(db, data):
 
@@ -77,6 +87,7 @@ def db_selector_writer(db, data):
 
 
     for item in data:
+        # Get IDs one by one and if doesn't exitst add new id and name
         sql_get_selector_data = (item['id'],)
         
         sql_add_selector_data = (item['id'],
@@ -93,13 +104,14 @@ def db_selector_writer(db, data):
                 cursor.execute(sql_add_selector_query,
                             sql_add_selector_data)
                 db.commit()
+                logging.warning('New item found on page: %s', res[9])
             else:
                 if DEBUG:
-                    print res[0]
+                    logging.debug(res[0])
 
         except Exception as e:
             db.rollback()
-            print e
+            logging.error('DB commit rollback in selector: %s', e)
             raise
 
 def db_close(db):
@@ -118,6 +130,7 @@ def parse_soup_for_date(soup):
     return rates_updated
 
 def parse_soup_for_rates(soup):
+    logging.info('Getting rates...')
     all_table_entries = []
     for table in soup.findAll("table", { "class" : "generali-table" }):
         header = True
@@ -141,6 +154,7 @@ def parse_soup_for_rates(soup):
     return all_table_entries
 
 def process_input_data(table, rates_date):
+    logging.info('Processing input data')
     for row in table:
         # Convert names from cp1252 to utf-8
         row['name'] = row['name'].encode('UTF-8')
@@ -155,6 +169,7 @@ def process_input_data(table, rates_date):
     return table
 
 def main():
+    logging.info('Scraper started...')
     db = db_connector()
     
     raw_data = scraper(rates_url)
@@ -168,9 +183,7 @@ def main():
     db_selector_writer(db, processed_table)
     db_main_writer(db, processed_table)
     db_close(db)
-"""    if DEBUG:
-        for item in processed_table:
-            print item
-"""
+    logging.info('Scraper finished.')
+
 if __name__ == "__main__":
     main()
