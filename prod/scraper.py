@@ -12,7 +12,7 @@ rates_url = 'https://www.generali.hu/Ugyfelszolgalat/Informaciok/Befektetesek/Es
 db_endpoint = 'scraperdb.c1mkc0degkxm.eu-central-1.rds.amazonaws.com'
 db_user = 'scraper_admin'
 db_passwd = 'scraper%admin'
-db_name = 'scraper_preprod'
+db_name = 'scraper'
 
 log_file = 'scraper.log'
 LOG_FORMAT = '%(asctime)s %(levelname)s %(message)s'
