@@ -1,6 +1,5 @@
 TODO:
 
-primary keys & foreign keys
 logging config
 DB password management
 config management
@@ -10,6 +9,7 @@ classes
 
 done:
 
+add database for own data
 read only db user
 remove name, currency from main_exchange, add to selector
 LOGGING
