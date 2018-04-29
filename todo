@@ -1,18 +1,20 @@
 TODO:
 
+primary keys & foreign keys
 logging config
 DB password management
 config management
-front end
 tests
 refactor db handling
 classes
 
 done:
 
+read only db user
 remove name, currency from main_exchange, add to selector
 LOGGING
 preprod db!
 update matching table only
 id generation for matching table
 matching table
+front end
