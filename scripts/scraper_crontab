@@ -1,1 +1,1 @@
-00 17 * * * date >> /var/log/scraper_stdout.log; /usr/bin/python /home/ec2-user/scraper/prod/scraper.py >> /var/log/scraper_stdout.log 2>&1
+00 17 * * * date >> /var/log/scraper_stdout.log; /usr/bin/python /home/zoltan.schmidt.a/scraper/prod/scraper.py >> /var/log/scraper_stdout.log 2>&1
