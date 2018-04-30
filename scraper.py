@@ -9,7 +9,7 @@ DEBUG = False
 
 # CONFIG
 rates_url = 'https://www.generali.hu/Ugyfelszolgalat/Informaciok/Befektetesek/Eszkozalapjaink.aspx'
-db_endpoint = 'scraperdb.c1mkc0degkxm.eu-central-1.rds.amazonaws.com'
+db_endpoint = '35.205.186.100'
 db_user = 'scraper_admin'
 db_passwd = 'scraper%admin'
 db_name = 'scraper_preprod'
